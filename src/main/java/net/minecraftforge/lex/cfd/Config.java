@@ -4,14 +4,8 @@
  */
 package net.minecraftforge.lex.cfd;
 
-import org.apache.commons.lang3.tuple.Pair;
-
-import net.minecraftforge.common.ForgeConfigSpec;
-import net.minecraftforge.common.ForgeConfigSpec.BooleanValue;
-import net.minecraftforge.common.ForgeConfigSpec.IntValue;
-
 public class Config {
-    public static class Server {
+   /* public static class Server {
         public static final String PREFIX = "cfd.configgui.";
         public final Tier tier1;
         public final Tier tier2;
@@ -74,5 +68,5 @@ public class Config {
         final Pair<Server, ForgeConfigSpec> specPair = new ForgeConfigSpec.Builder().configure(Server::new);
         serverSpec = specPair.getRight();
         SERVER = specPair.getLeft();
-    }
+    }*/
 }

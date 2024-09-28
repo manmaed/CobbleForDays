@@ -4,33 +4,31 @@
  */
 package net.minecraftforge.lex.cfd;
 
+
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.item.Tier;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.block.entity.BlockEntityTicker;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.BlockEntityTicker;
 import net.minecraft.world.level.block.entity.BlockEntityType;
-import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
-import net.minecraft.core.HolderLookup;
-import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
-import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.items.IItemHandler;
-import net.minecraftforge.items.ItemHandlerHelper;
-import net.minecraftforge.lex.cfd.Config.Server.Tier;
-
-import static net.minecraftforge.lex.cfd.CobbleForDays.*;
+import net.minecraft.world.level.block.state.BlockState;
+import net.neoforged.neoforge.capabilities.BlockCapability;
+import net.neoforged.neoforge.items.IItemHandler;
+import net.neoforged.neoforge.items.ItemHandlerHelper;
+import org.checkerframework.checker.units.qual.C;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import java.util.Optional;
+import java.util.function.Supplier;
 
 public class CobbleGenTile extends BlockEntity {
     private final ConfigCache config;
-    private final LazyOptional<IItemHandler> inventory = LazyOptional.of(Inventory::new);
-    private LazyOptional<IItemHandler> cache = null;
+    private final Supplier<IItemHandler> inventory = this::createInventory;
+    private IItemHandler cache = null;
     private int count = 0;
     private int timer = 20;
     private int configTimer = 200;
@@ -38,16 +36,27 @@ public class CobbleGenTile extends BlockEntity {
     public CobbleGenTile(Tier tier, BlockEntityType<?> tileType, BlockPos blockPos, BlockState blockState) {
         super(tileType, blockPos, blockState);
         this.config = new ConfigCache(tier);
-        this.timer = tier.interval.get();
+        this.timer = tier.getUses();
     }
 
-    @Override
+    public IItemHandler getInventory() {
+        if (cache == null) {
+            cache = inventory.get();
+        }
+        return cache;
+    }
+    private IItemHandler createInventory() {
+        return new Inventory();
+    }
+
+
+    /*@Override
     @Nonnull
-    public <T> LazyOptional<T> getCapability(Capability<T> cap, @Nullable Direction side) {
+    public <T> Optional<T> getCapability(BlockCapability<T, C> cap, @Nullable Direction side) {
        if (!this.remove && cap == ForgeCapabilities.ITEM_HANDLER)
           return inventory.cast();
        return super.getCapability(cap, side);
-    }
+    }*/
 
     @Override
     public void setRemoved() {
@@ -71,7 +80,7 @@ public class CobbleGenTile extends BlockEntity {
     }
 
     public void updateCache() {
-        BlockEntity tileEntity = level != null && level.isLoaded(worldPosition.above()) ? level.getBlockEntity(worldPosition.above()) : null;
+        /*BlockEntity tileEntity = level != null && level.isLoaded(worldPosition.above()) ? level.getBlockEntity(worldPosition.above()) : null;
         if (tileEntity != null){
             LazyOptional<IItemHandler> lazyOptional = tileEntity.getCapability(ForgeCapabilities.ITEM_HANDLER, Direction.DOWN);
             if (lazyOptional.isPresent()) {
@@ -82,14 +91,21 @@ public class CobbleGenTile extends BlockEntity {
             }
             else cache = LazyOptional.empty();
         }
-        else cache = LazyOptional.empty();
+        else cache = LazyOptional.empty();*/
     }
 
-    private LazyOptional<IItemHandler> getCache() {
+    public IItemHandler getCache() {
+        if (cache == null) {
+            updateCache();
+        }
+        return cache;
+    }
+
+    /*private LazyOptional<IItemHandler> getCache() {
         if (cache == null)
             updateCache();
         return cache;
-    }
+    }*/
 
     private void push() {
         ItemStack stack = new ItemStack(Items.COBBLESTONE, count);

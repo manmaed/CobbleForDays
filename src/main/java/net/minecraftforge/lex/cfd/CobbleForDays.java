@@ -4,6 +4,7 @@
  */
 package net.minecraftforge.lex.cfd;
 
+import net.minecraft.core.registries.Registries;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntityType;
@@ -11,21 +12,18 @@ import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.CreativeModeTabs;
 import net.minecraft.client.renderer.BiomeColors;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.client.event.RegisterColorHandlersEvent;
-import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.event.BuildCreativeModeTabContentsEvent;
-import net.minecraftforge.fml.DistExecutor;
-import net.minecraftforge.fml.ModLoadingContext;
-import net.minecraftforge.registries.RegistryObject;
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.config.ModConfig;
-import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
-import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
-import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
-import net.minecraftforge.registries.DeferredRegister;
-import net.minecraftforge.registries.ForgeRegistries;
-
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.bus.api.IEventBus;
+import net.neoforged.fml.ModLoadingContext;
+import net.neoforged.fml.common.Mod;
+import net.neoforged.fml.config.ModConfig;
+import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
+import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
+import net.neoforged.neoforge.client.event.RegisterColorHandlersEvent;
+import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
+import net.neoforged.neoforge.registries.DeferredBlock;
+import net.neoforged.neoforge.registries.DeferredItem;
+import net.neoforged.neoforge.registries.DeferredRegister;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -35,35 +33,34 @@ public class CobbleForDays {
     @SuppressWarnings("unused")
     private static final Logger LOGGER = LogManager.getLogger();
 
-    public static final DeferredRegister<Item> ITEMS = DeferredRegister.create(ForgeRegistries.ITEMS, MODID);
-    public static final DeferredRegister<Block> BLOCKS = DeferredRegister.create(ForgeRegistries.BLOCKS, MODID);
-    public static final DeferredRegister<BlockEntityType<?>> TILES = DeferredRegister.create(ForgeRegistries.BLOCK_ENTITY_TYPES, MODID);
+    public static final DeferredRegister.Items ITEMS = DeferredRegister.createItems(MODID);
+    public static final DeferredRegister.Blocks BLOCKS = DeferredRegister.createBlocks(MODID);
+    public static final DeferredRegister<BlockEntityType<?>> TILES = DeferredRegister.create(Registries.BLOCK_ENTITY_TYPE, MODID);
 
     private static final Block.Properties blockProps = Block.Properties.ofFullCopy(Blocks.GLASS).strength(3.5F).lightLevel(state -> 15);
     private static final Item.Properties  itemProps  = new Item.Properties();
 
-    public static final RegistryObject<Block> TIER1_BLOCK = BLOCKS.register("tier_1", () -> new CobbleGenBlock(1, blockProps));
-    public static final RegistryObject<Block> TIER2_BLOCK = BLOCKS.register("tier_2", () -> new CobbleGenBlock(2, blockProps));
-    public static final RegistryObject<Block> TIER3_BLOCK = BLOCKS.register("tier_3", () -> new CobbleGenBlock(3, blockProps));
-    public static final RegistryObject<Block> TIER4_BLOCK = BLOCKS.register("tier_4", () -> new CobbleGenBlock(4, blockProps));
-    public static final RegistryObject<Block> TIER5_BLOCK = BLOCKS.register("tier_5", () -> new CobbleGenBlock(5, blockProps));
-    public static final RegistryObject<Item>  TIER1_ITEM  = ITEMS .register("tier_1", () -> new BlockItem(TIER1_BLOCK.get(), itemProps));
-    public static final RegistryObject<Item>  TIER2_ITEM  = ITEMS .register("tier_2", () -> new BlockItem(TIER2_BLOCK.get(), itemProps));
-    public static final RegistryObject<Item>  TIER3_ITEM  = ITEMS .register("tier_3", () -> new BlockItem(TIER3_BLOCK.get(), itemProps));
-    public static final RegistryObject<Item>  TIER4_ITEM  = ITEMS .register("tier_4", () -> new BlockItem(TIER4_BLOCK.get(), itemProps));
-    public static final RegistryObject<Item>  TIER5_ITEM  = ITEMS .register("tier_5", () -> new BlockItem(TIER5_BLOCK.get(), itemProps));
-    public static final RegistryObject<BlockEntityType<CobbleGenTile>> TIER1_TILE = TILES.register("tier_1", () -> BlockEntityType.Builder.of(CobbleGenTile.createSupplier(1), TIER1_BLOCK.get()).build(null));
+    public static final DeferredBlock<Block> TIER1_BLOCK = BLOCKS.register("tier_1", () -> new CobbleGenBlock(1, blockProps));
+    public static final DeferredBlock<Block> TIER2_BLOCK = BLOCKS.register("tier_2", () -> new CobbleGenBlock(2, blockProps));
+    public static final DeferredBlock<Block> TIER3_BLOCK = BLOCKS.register("tier_3", () -> new CobbleGenBlock(3, blockProps));
+    public static final DeferredBlock<Block> TIER4_BLOCK = BLOCKS.register("tier_4", () -> new CobbleGenBlock(4, blockProps));
+    public static final DeferredBlock<Block> TIER5_BLOCK = BLOCKS.register("tier_5", () -> new CobbleGenBlock(5, blockProps));
+    public static final DeferredItem<Item> TIER1_ITEM  = ITEMS .register("tier_1", () -> new BlockItem(TIER1_BLOCK.get(), itemProps));
+    public static final DeferredItem<Item>  TIER2_ITEM  = ITEMS .register("tier_2", () -> new BlockItem(TIER2_BLOCK.get(), itemProps));
+    public static final DeferredItem<Item>  TIER3_ITEM  = ITEMS .register("tier_3", () -> new BlockItem(TIER3_BLOCK.get(), itemProps));
+    public static final DeferredItem<Item>  TIER4_ITEM  = ITEMS .register("tier_4", () -> new BlockItem(TIER4_BLOCK.get(), itemProps));
+    public static final DeferredItem<Item>  TIER5_ITEM  = ITEMS .register("tier_5", () -> new BlockItem(TIER5_BLOCK.get(), itemProps));
+    /*public static final RegistryObject<BlockEntityType<CobbleGenTile>> TIER1_TILE = TILES.register("tier_1", () -> BlockEntityType.Builder.of(CobbleGenTile.createSupplier(1), TIER1_BLOCK.get()).build(null));
     public static final RegistryObject<BlockEntityType<CobbleGenTile>> TIER2_TILE = TILES.register("tier_2", () -> BlockEntityType.Builder.of(CobbleGenTile.createSupplier(2), TIER2_BLOCK.get()).build(null));
     public static final RegistryObject<BlockEntityType<CobbleGenTile>> TIER3_TILE = TILES.register("tier_3", () -> BlockEntityType.Builder.of(CobbleGenTile.createSupplier(3), TIER3_BLOCK.get()).build(null));
     public static final RegistryObject<BlockEntityType<CobbleGenTile>> TIER4_TILE = TILES.register("tier_4", () -> BlockEntityType.Builder.of(CobbleGenTile.createSupplier(4), TIER4_BLOCK.get()).build(null));
     public static final RegistryObject<BlockEntityType<CobbleGenTile>> TIER5_TILE = TILES.register("tier_5", () -> BlockEntityType.Builder.of(CobbleGenTile.createSupplier(5), TIER5_BLOCK.get()).build(null));
-    private static final int PLAINS = 4159204;
+    private static final int PLAINS = 4159204;*/
 
-    public CobbleForDays() {
-        var modBus = FMLJavaModLoadingContext.get().getModEventBus();
-        ITEMS.register(modBus);
-        BLOCKS.register(modBus);
-        TILES.register(modBus);
+    public CobbleForDays(IEventBus event) {
+        ITEMS.register(event);
+        BLOCKS.register(event);
+        /*TILES.register(modBus);
         modBus.addListener(this::setup);
         modBus.addListener(this::setupClient);
         modBus.addListener(this::addCreative);
@@ -73,13 +70,13 @@ public class CobbleForDays {
             modBus.addListener(this::colorGeneratorItemWater);
         });
 
-        MinecraftForge.EVENT_BUS.register(this);
+        MinecraftForge.EVENT_BUS.register(this);*/
 
         //ModLoadingContext.get().registerConfig(ModConfig.Type.CLIENT, ForgeConfig.clientSpec);
-        ModLoadingContext.get().registerConfig(ModConfig.Type.SERVER, Config.serverSpec);
+        //ModLoadingContext.get().registerConfig(ModConfig.Type.SERVER, Config.serverSpec);
     }
 
-    private void addCreative(BuildCreativeModeTabContentsEvent event) {
+   /* private void addCreative(BuildCreativeModeTabContentsEvent event) {
         if (event.getTabKey() != CreativeModeTabs.FUNCTIONAL_BLOCKS)
             return;
 
@@ -106,5 +103,5 @@ public class CobbleForDays {
             (stack, index) -> index == 1 ? PLAINS : -1,
             ITEMS.getEntries().stream().filter(RegistryObject::isPresent).map(RegistryObject::get).toArray(Item[]::new)
         );
-    }
+    }*/
 }

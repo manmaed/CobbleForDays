@@ -19,16 +19,19 @@ import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import net.minecraft.world.level.BlockGetter;
 
-public class CobbleGenBlock extends Block implements EntityBlock {
-    private static final VoxelShape RENDER_SHAPE = Shapes.join(
-            box(0.0D,  0.0D, 0.0D, 16.0D,  4.0D, 16.0D),
-            box(0.0D, 12.0D, 0.0D, 16.0D, 16.0D, 16.0D),
-            BooleanOp.OR);
+public class CobbleGenBlock extends Block /*implements EntityBlock*/ {
+
     private final int tier;
     public CobbleGenBlock(int tier, Properties properties) {
         super(properties);
         this.tier = tier;
     }
+    /*private static final VoxelShape RENDER_SHAPE = Shapes.join(
+            box(0.0D,  0.0D, 0.0D, 16.0D,  4.0D, 16.0D),
+            box(0.0D, 12.0D, 0.0D, 16.0D, 16.0D, 16.0D),
+            BooleanOp.OR);
+    private final int tier;
+
 
     @Nullable
     @Override
@@ -53,5 +56,5 @@ public class CobbleGenBlock extends Block implements EntityBlock {
     @Override
     public VoxelShape getOcclusionShape(BlockState state, BlockGetter worldIn, BlockPos pos) {
        return RENDER_SHAPE;
-    }
+    }*/
 }

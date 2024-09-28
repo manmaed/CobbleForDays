@@ -1,150 +1,76 @@
 plugins {
-  id 'maven-publish'
-  id 'java'
-  id 'eclipse'
-  id 'idea'
-  id 'net.minecraftforge.licenser' version '1.0.1'
-  id 'net.minecraftforge.gradleutils' version '[2.3,2.4)'
-  id 'net.minecraftforge.gradle' version '[6.0,6.1)'
+    id 'java-library'
+    id 'eclipse'
+    id 'idea'
+    id 'maven-publish'
+    id 'net.neoforged.gradle.userdev' version "${neo_gradle}"
+    id "me.modmuss50.mod-publish-plugin" version "0.4.5"
 }
+
+def ENV = System.getenv()
+version = "${ENV.GITHUB_RUN_NUMBER}" ? "${mod_version}.${ENV.GITHUB_RUN_NUMBER}" : "${mod_version}.9999"
+group = project.maven_group
 
 repositories {
     mavenCentral()
+    maven {
+        url "https://cursemaven.com"
+    }
 }
 
-changelog {
-    from '1.0'
+base {
+    archivesName = project.archives_base_name + "-neo"
 }
 
-ext {
-    GIT_REPO = 'LexManos/CobbleForDays'
+java.toolchain.languageVersion = JavaLanguageVersion.of(21)
+
+runs {
+    configureEach {
+        systemProperty 'forge.logging.markers', 'REGISTRIES'
+        systemProperty 'forge.logging.console.level', 'debug'
+        modSource project.sourceSets.main
+    }
+
+    client {
+        systemProperty 'forge.enabledGameTestNamespaces', project.archives_base_name
+    }
+
+    server {
+        systemProperty 'forge.enabledGameTestNamespaces', project.archives_base_name
+        programArgument '--nogui'
+    }
+
+    data {
+        programArguments.addAll '--mod', project.archives_base_name, '--all', '--output', file('src/generated/resources/').getAbsolutePath(), '--existing', file('src/main/resources/').getAbsolutePath()
+    }
+}
+
+sourceSets.main.resources { 
+    srcDir 'src/generated/resources'
 }
 
 dependencies {
-    minecraft 'net.minecraftforge:forge:1.21-51.0.28'
-    // Hack fix for now, force jopt-simple to be exactly 5.0.4 because Mojang ships that version, but some transtive dependencies request 6.0+ 
-    implementation('net.sf.jopt-simple:jopt-simple:5.0.4') { version { strictly '5.0.4' } }
+    implementation "net.neoforged:neoforge:${neo_version}"
 }
 
-sourceSets {
-    main {
-        resources {
-            srcDirs += ['src/generated/resources']
-        }
+tasks.withType(ProcessResources).configureEach {
+    var replaceProperties = [
+            version: version
+    ]
+    inputs.properties replaceProperties
+
+    filesMatching(['META-INF/neoforge.mods.toml']) {
+        expand replaceProperties + [project: project]
     }
 }
 
-minecraft {
-    mappings channel: 'official', version: '1.21'
-    //accessTransformer = file('src/main/resources/META-INF/accesstransformer.cfg')
-    runs {
-        client {
-            workingDirectory project.file('run')
-            //property 'forge.logging.markers', 'SCAN,REGISTRIES,REGISTRYDUMP'
-            property 'forge.logging.console.level', 'debug'
-
-            mods {
-                cobblefordays {
-                    source sourceSets.main
-                }
-            }
-        }
-
-        server {
-            workingDirectory project.file('run')
-            //property 'forge.logging.markers', 'SCAN,REGISTRIES,REGISTRYDUMP'
-            property 'forge.logging.console.level', 'debug'
-
-            mods {
-                cobblefordays {
-                    source sourceSets.main
-                }
-            }
-        }
-
-        data {
-            workingDirectory project.file('run')
-            //property 'forge.logging.markers', 'SCAN,REGISTRIES,REGISTRYDUMP'
-            property 'forge.logging.console.level', 'debug'
-            args '--mod', 'cobblefordays', '--all', '--output', file('src/generated/resources/'), '--existing', sourceSets.main.resources.srcDirs[0]
-            mods {
-                cobblefordays {
-                    source sourceSets.main
-                }
-            }
-        }
-    }
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8' // Use the UTF-8 charset for Java compilation
 }
 
-group = 'net.minecraftforge.lex'
-version = gradleutils.tagOffsetVersion
-logger.lifecycle('Version: ' + version)
-java.toolchain.languageVersion = JavaLanguageVersion.of(21)
-java.withSourcesJar()
-
-license {
-  header project.file('LICENSE-header.txt')
-  newLine false
-}
-
-ext {
-    changelog = rootProject.file('build/changelog.txt')
-    MANIFEST = manifest{
-        attributes([
-            'Specification-Title':      project.name,
-            'Specification-Vendor':     'Forge Development LLC',
-            'Specification-Version':    project.version,
-            'Implementation-Title':     project.name,
-            'Implementation-Version':   project.version,
-            'Implementation-Vendor':    'Forge Development LLC'
-        ] as LinkedHashMap)
-    }
-}
-
-compileJava {
-    options.encoding = 'UTF-8'
-}
-
-sourceSets.each {
-    def dir = layout.buildDirectory.dir("sourcesSets/$it.name")
-    it.output.resourcesDir = dir
-    it.java.destinationDirectory = dir
-}
-
-jar {
-    manifest.from(MANIFEST)
-}
-
-publishing {
-    publications {
-        mavenJava(MavenPublication) {
-            from components.java
-            pom {
-                name = project.archivesBaseName
-                packaging = 'jar'
-                url = "https://github.com/${GIT_REPO}"
-
-                scm {
-                    url = "https://github.com/${GIT_REPO}"
-                    connection = "scm:git:git://github.com/${GIT_REPO}.git"
-                    developerConnection = "scm:git:git@github.com:${GIT_REPO}.git"
-                }
-
-                issueManagement {
-                    system = 'github'
-                    url = "https://github.com/${GIT_REPO}/issues"
-                }
-
-                developers {
-                    developer {
-                        id = 'LexManos'
-                        name = 'Lex Manos'
-                    }
-                }
-            }
-        }
-    }
-    repositories {
-        maven gradleutils.publishingForgeMaven
+idea {
+    module {
+        downloadSources = true
+        downloadJavadoc = true
     }
 }
